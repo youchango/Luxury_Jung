@@ -4,6 +4,7 @@ import MainLayout from './components/MainLayout';
 import Login from './pages/Login';
 import AdminUpload from './pages/AdminUpload';
 import ResumeExplorer from './pages/ResumeExplorer';
+import PrivateRoute from './components/PrivateRoute';
 
 function App() {
   return (
@@ -25,8 +26,9 @@ function App() {
           <Route path="/" element={<MainLayout />}>
             <Route index element={<Navigate to="/login" replace />} />
             <Route path="login" element={<Login />} />
-            <Route path="resumes" element={<ResumeExplorer />} />
-            <Route path="admin/upload" element={<AdminUpload />} />
+            {/* PrivateRoute로 보호된 페이지 - 로그인하지 않으면 /login으로 리다이렉트 */}
+            <Route path="resumes" element={<PrivateRoute><ResumeExplorer /></PrivateRoute>} />
+            <Route path="admin/upload" element={<PrivateRoute><AdminUpload /></PrivateRoute>} />
           </Route>
         </Routes>
       </BrowserRouter>

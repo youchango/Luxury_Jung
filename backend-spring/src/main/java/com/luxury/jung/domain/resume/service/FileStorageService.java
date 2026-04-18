@@ -41,4 +41,19 @@ public class FileStorageService {
             throw new RuntimeException("파일 저장에 실패했습니다: " + fileName, ex);
         }
     }
+
+    /**
+     * 주어진 fileUrl에서 파일명을 역추적하여 실제 물리 파일을 스토리지에서 삭제합니다.
+     * @param fileUrl DB에 등록된 원본 파일 URL 경로
+     */
+    public void deleteFile(String fileUrl) {
+        try {
+            String fileName = fileUrl.substring(fileUrl.lastIndexOf('/') + 1);
+            Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
+            Files.deleteIfExists(filePath);
+        } catch (IOException ex) {
+            // 파일이 기존에 없는 경우는 조용히 로그만 찍음
+            System.err.println("[FileStorage] 파일 삭제 실패 (DB는 정상 삭제): " + ex.getMessage());
+        }
+    }
 }

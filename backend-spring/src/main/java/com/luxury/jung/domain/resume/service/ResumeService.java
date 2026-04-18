@@ -15,8 +15,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional(readOnly = true) // 성능 향상을 위한 읽기 전용 트랜잭션 사용
 public class ResumeService {
-    
+
     private final ResumeRepository resumeRepository;
+    private final FileStorageService fileStorageService;
     
     /**
      * 필터 조건을 바탕으로 페이징된 이력서 목록을 응답 DTO 규격으로 리턴합니다.
@@ -36,5 +37,17 @@ public class ResumeService {
         Resume resume = resumeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("해당 ID의 이력서를 찾을 수 없습니다: " + id));
         return ResumeDetailResponseDto.from(resume);
+    }
+
+    /**
+     * 관리자 전용: 특정 이력서를 DB 및 실체 파일에서 완전히 제거합니다.
+     */
+    @Transactional
+    public void deleteResume(Long id) {
+        Resume resume = resumeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("삭제할 이력서를 찾을 수 없습니다: " + id));
+        // 물리 파일 삭제 시도 (실패해도 DB 삭제는 진행)
+        fileStorageService.deleteFile(resume.getFileUrl());
+        resumeRepository.deleteById(id);
     }
 }

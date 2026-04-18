@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Tag, Typography, Slider, Select, Row, Col, Card, Drawer, Descriptions, Divider } from 'antd';
+import { Table, Tag, Typography, Slider, Select, Row, Col, Card, Drawer, Descriptions, Divider, Button, Popconfirm } from 'antd';
+import { DeleteOutlined } from '@ant-design/icons';
 import apiClient from '../../api/apiClient';
 
 const { Title, Text } = Typography;
@@ -88,6 +89,18 @@ const ResumeExplorer: React.FC = () => {
       console.error(e);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // 이력서 삭제 처리
+  const handleDelete = async (id: number) => {
+    try {
+      await apiClient.delete(`/resumes/${id}`);
+      setDrawerVisible(false);
+      setResumeDetail(null);
+      fetchResumes(); // 목록 새로고침
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -181,6 +194,25 @@ const ResumeExplorer: React.FC = () => {
              <div style={{ marginBottom: 24 }}>
                 {resumeDetail.certificates?.map((c: string) => <Tag color="purple" key={c}>{c}</Tag>)}
              </div>
+             <Divider style={{ borderColor: '#333' }} />
+             {/* 관리자 전용 삭제 버튼 */}
+             <Popconfirm
+               title="이력서 영구 삭제"
+               description="이 이력서를 DB와 파일 서버에서 완전히 삭제합니다. 복구가 불가능합니다."
+               onConfirm={() => handleDelete(resumeDetail.id)}
+               okText="삭제 확인"
+               cancelText="취소"
+               okButtonProps={{ danger: true }}
+             >
+               <Button
+                 danger
+                 icon={<DeleteOutlined />}
+                 block
+                 style={{ marginTop: 8 }}
+               >
+                 이 이력서 영구 삭제
+               </Button>
+             </Popconfirm>
           </div>
         )}
       </Drawer>

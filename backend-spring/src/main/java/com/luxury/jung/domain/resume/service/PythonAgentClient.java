@@ -1,5 +1,6 @@
 package com.luxury.jung.domain.resume.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.multipart.MultipartFile;
@@ -10,9 +11,15 @@ import org.springframework.http.MediaType;
 public class PythonAgentClient {
     private final RestClient restClient;
 
-    public PythonAgentClient() {
-        // Python FastAPI 워커의 base URL (port 8000)
-        this.restClient = RestClient.builder().baseUrl("http://localhost:8000").build();
+    /**
+     * Python FastAPI 파서 에이전트의 Base URL을 환경변수로부터 주입받아 클라이언트를 초기화합니다.
+     * 로컬 환경: http://localhost:8000
+     * Docker 환경: http://parser:8000 (docker-compose의 AGENT_SERVER_URL 환경변수로 오버라이드됨)
+     *
+     * @param agentUrl application.yml의 app.agent.url 값
+     */
+    public PythonAgentClient(@Value("${app.agent.url}") String agentUrl) {
+        this.restClient = RestClient.builder().baseUrl(agentUrl).build();
     }
 
     /**

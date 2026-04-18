@@ -10,6 +10,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -41,5 +43,14 @@ public class ResumeController {
     public ResponseEntity<ResumeDetailResponseDto> getResumeDetail(@org.springframework.web.bind.annotation.PathVariable("id") Long id) {
         ResumeDetailResponseDto detail = resumeService.getResumeDetail(id);
         return ResponseEntity.ok(detail);
+    }
+
+    /**
+     * 관리자 전용: 이력서를 DB 및 물리 파일에서 완전 제거합니다.
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteResume(@PathVariable("id") Long id) {
+        resumeService.deleteResume(id);
+        return ResponseEntity.noContent().build(); // HTTP 204 No Content
     }
 }

@@ -5,7 +5,7 @@ services:
     image: mariadb:10.11
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     environment:
-      MYSQL_ROOT_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-password}
       MYSQL_DATABASE: luxury_jung
     ports:
       - "33306:3306"
@@ -13,6 +13,13 @@ services:
       - db_data:/var/lib/mysql
       # 최초 컨테이너 생성 시 db.sql을 MariaDB 초기화 스크립트 경로에 마운트하여 테이블 자동 생성
       - ./DB/db.sql:/docker-entrypoint-initdb.d/01_init.sql
+    # MariaDB가 완전히 준비된 뒤에만 후속 서비스가 뜨도록 healthcheck 설정
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--su-mysql", "ping", "--silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   parser:
     build:
@@ -21,25 +28,30 @@ services:
       - ./parser-python/.env
     # MySQL 접속 경로는 로컬호스트가 아닌 도커 네트워크(maridb)로 스위칭 및 인코딩 방어
     environment:
-      - DB_URL=mysql+pymysql://root:password@maridb:3306/luxury_jung?charset=utf8mb4
+      - DB_URL=mysql+pymysql://root:${DB_ROOT_PASSWORD:-password}@maridb:3306/luxury_jung?charset=utf8mb4
     ports:
       - "8000:8000"
     depends_on:
-      - maridb
+      maridb:
+        condition: service_healthy  # MariaDB 완전 준비 후 기동
 
   backend:
     build:
       context: ./backend-spring
-    # Spring DB 주소 및 파서 통신 주소를 로컬호스트가 아닌 컨테이너 이름으로 덮어씌움 및 인코딩 방어
+    # 환경변수를 통해 민감정보를 안전하게 주입 (하드코딩 제거)
     environment:
       - SPRING_DATASOURCE_URL=jdbc:mariadb://maridb:3306/luxury_jung?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Seoul
-      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=${DB_ROOT_PASSWORD:-password}
+      - JWT_SECRET=${JWT_SECRET:-aW1hZ2luYXRpb25pc21vcmVpbXBvcnRhbnR0aGFua25vd2xlZGdlYWxiZXJ0ZWluc3RlaW4=}
       - AGENT_SERVER_URL=http://parser:8000
     ports:
       - "8080:8080"
     depends_on:
-      - maridb
-      - parser
+      maridb:
+        condition: service_healthy  # MariaDB 완전 준비 후 기동
+      parser:
+        condition: service_started
 
   frontend:
     build:
