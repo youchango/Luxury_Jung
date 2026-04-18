@@ -16,7 +16,8 @@ __pycache__/
 venv/
 .venv/
 env/
-.env             # AI API 키, DB 비밀번호 등은 절대 업로드되면 안됩니다!
+# AI API 키, DB 비밀번호 등은 절대 업로드되면 안됩니다!
+.env
 *.egg-info/
 .eggs/
 
@@ -27,7 +28,8 @@ env/
 /backend-spring/.gradle/
 /backend-spring/out/
 /backend-spring/bin/
-/backend-spring/uploads/   # 이력서 메인 업로드 스토리지 내역은 무시
+# 이력서 메인 업로드 스토리지 내역은 무시
+/backend-spring/uploads/
 *.class
 *.log
 *.jar
