@@ -3,6 +3,7 @@ version: '3.8'
 services:
   maridb:
     image: mariadb:10.11
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: luxury_jung
@@ -16,9 +17,9 @@ services:
       context: ./parser-python
     env_file:
       - ./parser-python/.env
-    # MySQL 접속 경로는 로컬호스트가 아닌 도커 네트워크(maridb)로 스위칭
+    # MySQL 접속 경로는 로컬호스트가 아닌 도커 네트워크(maridb)로 스위칭 및 인코딩 방어
     environment:
-      - DB_URL=mysql+pymysql://root:password@maridb:3306/luxury_jung
+      - DB_URL=mysql+pymysql://root:password@maridb:3306/luxury_jung?charset=utf8mb4
     ports:
       - "8000:8000"
     depends_on:
@@ -27,9 +28,9 @@ services:
   backend:
     build:
       context: ./backend-spring
-    # Spring DB 주소 및 파서 통신 주소를 로컬호스트가 아닌 컨테이너 이름으로 덮어씌움
+    # Spring DB 주소 및 파서 통신 주소를 로컬호스트가 아닌 컨테이너 이름으로 덮어씌움 및 인코딩 방어
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mariadb://maridb:3306/luxury_jung
+      - SPRING_DATASOURCE_URL=jdbc:mariadb://maridb:3306/luxury_jung?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Seoul
       - SPRING_DATASOURCE_PASSWORD=password
       - AGENT_SERVER_URL=http://parser:8000
     ports:

@@ -21,9 +21,10 @@ public class PythonAgentClient {
      */
     public void sendToParser(MultipartFile file, Long jobId, String fileUrl) {
         MultipartBodyBuilder builder = new MultipartBodyBuilder();
-        builder.part("file", file.getResource());
-        builder.part("job_id", jobId);
-        builder.part("file_url", fileUrl);
+        builder.part("file", file.getResource())
+               .header("Content-Disposition", "form-data; name=\"file\"; filename=\"" + new String(file.getOriginalFilename().getBytes(java.nio.charset.StandardCharsets.UTF_8), java.nio.charset.StandardCharsets.ISO_8859_1) + "\"");
+        builder.part("job_id", String.valueOf(jobId).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        builder.part("file_url", fileUrl.getBytes(java.nio.charset.StandardCharsets.UTF_8));
 
         restClient.post()
             .uri("/api/v1/parse")

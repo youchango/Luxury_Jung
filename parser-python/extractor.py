@@ -15,10 +15,17 @@ def extract_text_from_file(file_content: bytes, filename: str) -> str:
     elif ext in ['.doc', '.docx']:
         return _extract_text_from_docx(file_content)
     elif ext == '.txt':
-        return file_content.decode('utf-8', errors='ignore')
+        try:
+            return file_content.decode('utf-8')
+        except UnicodeDecodeError:
+            # 윈도우 메모장에서 작성된 한국어 파일 대응을 위한 CP949 Fallback
+            return file_content.decode('cp949', errors='ignore')
     else:
-        # 향후 엑셀(openpyxl) 및 HWP 등 추가 확장
-        return file_content.decode('utf-8', errors='ignore')
+        # 향후 엑셀(openpyxl) 및 HWP 등 추가 확장에 대비
+        try:
+            return file_content.decode('utf-8')
+        except UnicodeDecodeError:
+            return file_content.decode('cp949', errors='ignore')
 
 def _extract_text_from_pdf(file_content: bytes) -> str:
     text = ""
