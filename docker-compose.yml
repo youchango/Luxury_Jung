@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  maridb:
+    image: mariadb:10.11
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: luxury_jung
+    ports:
+      - "33306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  parser:
+    build:
+      context: ./parser-python
+    env_file:
+      - ./parser-python/.env
+    # MySQL 접속 경로는 로컬호스트가 아닌 도커 네트워크(maridb)로 스위칭
+    environment:
+      - DB_URL=mysql+pymysql://root:password@maridb:3306/luxury_jung
+    ports:
+      - "8000:8000"
+    depends_on:
+      - maridb
+
+  backend:
+    build:
+      context: ./backend-spring
+    # Spring DB 주소 및 파서 통신 주소를 로컬호스트가 아닌 컨테이너 이름으로 덮어씌움
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mariadb://maridb:3306/luxury_jung
+      - SPRING_DATASOURCE_PASSWORD=password
+      - AGENT_SERVER_URL=http://parser:8000
+    ports:
+      - "8080:8080"
+    depends_on:
+      - maridb
+      - parser
+
+  frontend:
+    build:
+      context: ./frontend-web
+    ports:
+      # 호스트의 5173 포트를 엔진엑스 웹서버 80포트로 포워딩
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  db_data:

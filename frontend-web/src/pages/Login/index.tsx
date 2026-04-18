@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, Form, Input, Button, Tabs, message, Typography } from 'antd';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import apiClient from '../../api/apiClient';
 import { useNavigate } from 'react-router-dom';
 
 const { Title, Text } = Typography;
@@ -13,12 +13,12 @@ const Login: React.FC = () => {
   const onLogin = async (values: any) => {
     setLoading(true);
     try {
-      const res = await axios.post('http://localhost:8080/api/v1/auth/login', values);
+      const res = await apiClient.post('/auth/login', values);
       localStorage.setItem('token', res.data.accessToken);
       message.success('럭셔리-정 시스템에 연결되었습니다.');
       navigate('/resumes');
     } catch (err) {
-      message.error('접근 권한이 없거나 비밀번호가 틀렸습니다.');
+      // apiClient의 에러 핸들러가 자동으로 메시지를 띄우지만, 추가 폴백이 필요하다면 작성 가능
     } finally {
       setLoading(false);
     }
@@ -27,13 +27,13 @@ const Login: React.FC = () => {
   const onSignup = async (values: any) => {
     setLoading(true);
     try {
-      await axios.post('http://localhost:8080/api/v1/auth/signup', {
+      await apiClient.post('/auth/signup', {
           ...values,
-          role: 'ADMIN' // 파일 처리를 위해 현재 가입되는 계정은 어드민 권한 처리
+          role: 'ADMIN'
       });
       message.success('데이터망 접근 인가 자격이 부여되었습니다. 다시 로그인하여 주십시오.');
     } catch (err) {
-      message.error('가입에 실패했습니다.');
+      // 에러 메시지는 interceptor가 처리
     } finally {
       setLoading(false);
     }

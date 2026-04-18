@@ -1,5 +1,6 @@
 package com.luxury.jung.domain.resume.controller;
 
+import com.luxury.jung.domain.resume.dto.ResumeDetailResponseDto;
 import com.luxury.jung.domain.resume.dto.ResumeListResponseDto;
 import com.luxury.jung.domain.resume.dto.ResumeSearchCondition;
 import com.luxury.jung.domain.resume.service.ResumeService;
@@ -31,5 +32,14 @@ public class ResumeController {
         Page<ResumeListResponseDto> responsePage = resumeService.searchResumes(condition, pageable);
         
         return ResponseEntity.ok(responsePage);
+    }
+
+    /**
+     * 단일 이력서에 대한 깊은 상세 뷰(Drawer/Modal 용도) 내용을 응답합니다.
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<ResumeDetailResponseDto> getResumeDetail(@org.springframework.web.bind.annotation.PathVariable("id") Long id) {
+        ResumeDetailResponseDto detail = resumeService.getResumeDetail(id);
+        return ResponseEntity.ok(detail);
     }
 }

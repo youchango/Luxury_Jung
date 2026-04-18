@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Tag, Typography, Slider, Select, Row, Col, Card } from 'antd';
-import axios from 'axios';
+import { Table, Tag, Typography, Slider, Select, Row, Col, Card, Drawer, Descriptions, Divider } from 'antd';
+import apiClient from '../../api/apiClient';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 
-// Antd Data 컬럼 정의
+// Antd Data 컬럼 정의 (약식)
 const columns = [
   {
     title: '후보자 식별명',
@@ -37,8 +37,8 @@ const columns = [
     ),
   },
   {
-    title: '데이터 삽입 일시',
-    dataIndex: 'careerStartDate', // 추후 Entity의 createdAt 등으로 변경 가능
+    title: '경력 시작 일자',
+    dataIndex: 'careerStartDate', 
     key: 'careerStartDate',
     render: (date: string) => <Text style={{ color: '#666' }}>{date || '-'}</Text>,
   },
@@ -54,20 +54,16 @@ const ResumeExplorer: React.FC = () => {
   const [techFilter, setTechFilter] = useState<string[]>([]);
   const [page, setPage] = useState(1);
 
+  // Drawer 상태 관리
+  const [drawerVisible, setDrawerVisible] = useState(false);
+  const [resumeDetail, setResumeDetail] = useState<any>(null);
+
   const fetchResumes = async () => {
     setLoading(true);
     try {
-      const config = {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-        params: {
-          minCareer: minCareer,
-          techStacks: techFilter.join(','),
-          page: page - 1, // 백엔드 Pageable은 0부터 시작함
-          size: 10
-        }
-      };
-      // 백엔드 API (QueryDSL 컨트롤러 연동)
-      const res = await axios.get('http://localhost:8080/api/v1/resumes', config);
+      const res = await apiClient.get('/resumes', {
+        params: { minCareer, techStacks: techFilter.join(','), page: page - 1, size: 10 }
+      });
       setData(res.data.content);
       setTotal(res.data.totalElements);
     } catch (err) {
@@ -80,6 +76,20 @@ const ResumeExplorer: React.FC = () => {
   useEffect(() => {
     fetchResumes();
   }, [minCareer, techFilter, page]);
+
+  // 테이블 Row 클릭 핸들러 (상세조회)
+  const handleRowClick = async (record: any) => {
+    try {
+      setLoading(true);
+      const res = await apiClient.get(`/resumes/${record.id}`);
+      setResumeDetail(res.data);
+      setDrawerVisible(true);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div>
@@ -120,22 +130,60 @@ const ResumeExplorer: React.FC = () => {
         </Row>
       </Card>
 
-      {/* 동적 검색 결과 데이터 테이블 */}
+      {/* 동적 검색 결과 데이터 테이블 (마우스 호버 시 Pointer 효과 추가) */}
       <Table 
         columns={columns} 
         dataSource={data} 
         rowKey="id"
         loading={loading}
-        pagination={{
-          current: page,
-          pageSize: 10,
-          total: total,
-          onChange: (p) => setPage(p),
-          position: ['bottomCenter']
-        }}
-        rowClassName={() => 'table-row-luxury'}
+        onRow={(record) => ({
+          onClick: () => handleRowClick(record),
+          style: { cursor: 'pointer' } 
+        })}
+        pagination={{ current: page, pageSize: 10, total: total, onChange: (p) => setPage(p), position: ['bottomCenter'] }}
         style={{ background: 'transparent' }}
       />
+
+      {/* 우측 럭셔리 상세 조회 Drawer */}
+      <Drawer
+        title={<span style={{ color: '#E0B553' }}>인재 상세 포트폴리오</span>}
+        width={720}
+        onClose={() => setDrawerVisible(false)}
+        open={drawerVisible}
+        bodyStyle={{ paddingBottom: 80, background: '#1f1f1f' }}
+      >
+        {resumeDetail && (
+          <div>
+             <Descriptions title={<span style={{ color: '#fff' }}>기본 정보</span>} column={2} style={{ marginBottom: 32 }}>
+                <Descriptions.Item label="이름">{resumeDetail.name || '익명'}</Descriptions.Item>
+                <Descriptions.Item label="연차">{resumeDetail.yearsOfExperience || 0}년차</Descriptions.Item>
+                <Descriptions.Item label="원본 파일명">{resumeDetail.originalFileName}</Descriptions.Item>
+                <Descriptions.Item label="경력 시작일">{resumeDetail.careerStartDate || '-'}</Descriptions.Item>
+             </Descriptions>
+             <Divider style={{ borderColor: '#333' }} />
+             
+             <Title level={5} style={{ color: '#E0B553' }}>주요 기술(Tech Stack)</Title>
+             <div style={{ marginBottom: 24 }}>
+                {resumeDetail.techStacks?.map((s: string) => <Tag color="gold" key={s}>{s}</Tag>)}
+             </div>
+
+             <Title level={5} style={{ color: '#E0B553' }}>보유 스킬(Skills)</Title>
+             <div style={{ marginBottom: 24 }}>
+                {resumeDetail.skills?.map((s: string) => <Tag color="green" key={s}>{s}</Tag>)}
+             </div>
+
+             <Title level={5} style={{ color: '#E0B553' }}>경력 요약 기록(Career)</Title>
+             <ul style={{ color: '#ddd' }}>
+                 {resumeDetail.careers?.map((c: string, idx: number) => <li key={idx} style={{ marginBottom: 8 }}>{c}</li>)}
+             </ul>
+             
+             <Title level={5} style={{ color: '#E0B553', marginTop: 24 }}>자격증(Certificates)</Title>
+             <div style={{ marginBottom: 24 }}>
+                {resumeDetail.certificates?.map((c: string) => <Tag color="purple" key={c}>{c}</Tag>)}
+             </div>
+          </div>
+        )}
+      </Drawer>
     </div>
   );
 };

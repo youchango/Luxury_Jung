@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Upload, message, Typography, Card } from 'antd';
 import { InboxOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import apiClient from '../../api/apiClient';
 
 const { Dragger } = Upload;
 const { Title, Text } = Typography;
@@ -17,7 +17,7 @@ const AdminUpload: React.FC = () => {
     const config = {
       headers: { 
         'Content-Type': 'multipart/form-data',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        // Authorization Bearer는 apiClient의 인터셉터가 자동으로 주입합니다.
       },
       onUploadProgress: (event: any) => {
         onProgress({ percent: (event.loaded / event.total) * 100 });
@@ -26,7 +26,7 @@ const AdminUpload: React.FC = () => {
 
     try {
       setUploading(true);
-      const res = await axios.post('http://localhost:8080/api/v1/admin/resumes/upload/multi', formData, config);
+      const res = await apiClient.post('/admin/resumes/upload/multi', formData, config);
       onSuccess(res.data, file);
       message.success(`${file.name} 데이터를 AI 인큐베이터로 전송했습니다.`);
     } catch (err: any) {

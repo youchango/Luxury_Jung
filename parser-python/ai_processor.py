@@ -3,6 +3,7 @@ import json
 from abc import ABC, abstractmethod
 from openai import OpenAI
 from schemas import ResumeParsedData
+from tenacity import retry, wait_exponential, stop_after_attempt
 
 class BaseAIExtractor(ABC):
     """AI 파서의 기본 인터페이스 (Strategy Pattern)"""
@@ -14,6 +15,7 @@ class OpenAIExtractor(BaseAIExtractor):
     def __init__(self):
         self.client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
         
+    @retry(stop=stop_after_attempt(4), wait=wait_exponential(multiplier=1, min=2, max=10), reraise=True)
     def parse_with_ai(self, raw_text: str) -> ResumeParsedData:
         system_prompt = """
         당신은 이력서 데이터를 분석하고 정형화된 JSON 포맷으로 추출하는 전문 HR Assistant AI입니다.
