@@ -1,0 +1,51 @@
+# ==============================================================
+# Luxury-Jung Monorepo .gitignore
+# ==============================================================
+
+# 0. OS 시스템 임시 파일
+.DS_Store
+Thumbs.db
+*.swp
+
+# =========================
+# 1. Python 파서 에이전트 (parser-python)
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+.env             # AI API 키, DB 비밀번호 등은 절대 업로드되면 안됩니다!
+*.egg-info/
+.eggs/
+
+# =========================
+# 2. Spring Boot 백엔드 (backend-spring)
+# =========================
+/backend-spring/build/
+/backend-spring/.gradle/
+/backend-spring/out/
+/backend-spring/bin/
+/backend-spring/uploads/   # 이력서 메인 업로드 스토리지 내역은 무시
+*.class
+*.log
+*.jar
+*.war
+.idea/                     # IntelliJ 임시 폴더
+*.iml
+.vscode/
+
+# =========================
+# 3. React/Vite 프론트엔드 (frontend-web)
+# =========================
+node_modules/
+/frontend-web/dist/
+/frontend-web/build/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.eslintcache
+.env.local
+.env.development.local
+.env.production.local

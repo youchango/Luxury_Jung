@@ -1,0 +1,31 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: luxury-jung-api
+  
+  datasource:
+    # 33306 포트를 이용하는 MariaDB 연결 정보
+    url: jdbc:mariadb://localhost:33306/luxury_jung?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Seoul
+    username: root
+    password: 1234 # TODO: 보안을 위해 환경변수 또는 실제 비밀번호로 교체 요망
+    driver-class-name: org.mariadb.jdbc.Driver
+
+  jpa:
+    hibernate:
+      # 외부 SQL 파일을 통해 이미 관리하므로 validate로 안전하게 설정
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MariaDBDialect
+        highlight_sql: true
+
+# 로깅 설정
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: trace
+    com.luxury.jung: debug
