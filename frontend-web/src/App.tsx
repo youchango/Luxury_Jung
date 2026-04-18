@@ -1,4 +1,3 @@
-import React from 'react';
 import { ConfigProvider, theme } from 'antd';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from './components/MainLayout';

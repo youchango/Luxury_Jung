@@ -11,6 +11,8 @@ services:
       - "33306:3306"
     volumes:
       - db_data:/var/lib/mysql
+      # 최초 컨테이너 생성 시 db.sql을 MariaDB 초기화 스크립트 경로에 마운트하여 테이블 자동 생성
+      - ./DB/db.sql:/docker-entrypoint-initdb.d/01_init.sql
 
   parser:
     build:

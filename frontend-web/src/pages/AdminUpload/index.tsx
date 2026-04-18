@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Upload, message, Typography, Card } from 'antd';
 import { InboxOutlined } from '@ant-design/icons';
 import apiClient from '../../api/apiClient';
@@ -7,8 +7,6 @@ const { Dragger } = Upload;
 const { Title, Text } = Typography;
 
 const AdminUpload: React.FC = () => {
-  const [uploading, setUploading] = useState(false);
-
   const customRequest = async (options: any) => {
     const { file, onSuccess, onError, onProgress } = options;
     const formData = new FormData();
@@ -25,15 +23,12 @@ const AdminUpload: React.FC = () => {
     };
 
     try {
-      setUploading(true);
       const res = await apiClient.post('/admin/resumes/upload/multi', formData, config);
       onSuccess(res.data, file);
       message.success(`${file.name} 데이터를 AI 인큐베이터로 전송했습니다.`);
     } catch (err: any) {
       onError(err);
-      message.error(`${file.name} 업로드에 실패했습니다. (토큰이 만료되었거나 에이전트 오프라인)`);
-    } finally {
-      setUploading(false);
+      message.error(err.response?.data?.message || '통신 오류가 발생했습니다.');
     }
   };
 
